@@ -1,60 +1,64 @@
-import * as fs from'fs';
+const fs = require('fs');
 
-export class Contenedor{
-    constructor(productos){
-        this.productos = productos;
-    }
-     save(objeto){
-        if(objeto.id){
-            this.productos.push(objeto);
-            return objeto.id;
-        }
-        let id = 1;
-        this.productos.forEach((element, index )=>{
-            if(element.id >= id){
-                id = element.id + 1;
-            }
-        });
-        objeto.id = id;
-        this.productos.push(objeto);
-        return id;
-        
-    }   
-     getById(id){
-        let objetoSeleccionado = null;
-        this.productos.forEach(element => {
-            if(element.id == id){
-                objetoSeleccionado = element;
-            }
-        });
-        return objetoSeleccionado;
-    }
-    update(producto){
-        this.productos = this.productos.map((element) => {
-            if (element.id == producto.id) {
-              return producto;
-            }
-            return element;
-        });
-    }
+class Contenedor {
+  constructor(nombre) {
+    this.nombre = nombre;
+  }
 
-    getAll(){
-        return this.productos;
-    }
+  async save(objeto) {
+    const archivo = await fs.promises.readFile(this.nombre, 'utf-8');
+    const archivoParseado = JSON.parse(archivo);
+    let id = 1;
+    archivoParseado.forEach((element, index) => {
+      if (element.id >= id) {
+        id = element.id + 1;
+      }
+    });
+    objeto.id = id;
+    archivoParseado.push(objeto);
+    await fs.promises.writeFile(this.nombre, JSON.stringify(archivoParseado, null, 2));
+    return id;
+  }
 
-     deleteById(id){
-        let indexSeleccionado = -1;
-        this.productos.forEach((element,index) =>{
-            if(element.id == id){
-                indexSeleccionado = index;
-            }
-        });
-        if(indexSeleccionado != -1){
-            this.productos.splice(indexSeleccionado,1);
-        }
+  async getById(id) {
+    const archivo = await fs.promises.readFile(this.nombre, 'utf-8');
+    const archivoParseado = JSON.parse(archivo);
+    let objetoSeleccionado = null;
+    archivoParseado.forEach(element => {
+      if (element.id == id) {
+        objetoSeleccionado = element;
+      }
+    });
+    return objetoSeleccionado;
+  }
+
+  async getAll() {
+    const archivo = await fs.promises.readFile(this.nombre, 'utf-8');
+    const archivoParseado = JSON.parse(archivo);
+    return archivoParseado;
+  }
+
+  async deleteById(id) {
+    const archivo = await fs.promises.readFile(this.nombre, 'utf-8');
+    const archivoParseado = JSON.parse(archivo);
+    let indexSeleccionado = -1;
+    archivoParseado.forEach((element, index) => {
+      if (element.id == id) {
+        indexSeleccionado = index;
+      }
+    });
+    if (indexSeleccionado != -1) {
+      archivoParseado.splice(indexSeleccionado, 1);
+      await fs.promises.writeFile(this.nombre, JSON.stringify(archivoParseado, null, 2));
     }
-     deleteAll(){
-        this.productos = [];
-    }
+    
+  }
+
+  async deleteAll() {
+    const arregloVacio = [];
+    await fs.promises.writeFile(this.nombre, JSON.stringify(arregloVacio, null, 2));
+  }
 }
+
+module.exports = Contenedor;
 
